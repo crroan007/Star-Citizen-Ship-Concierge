@@ -1,0 +1,52 @@
+{
+  "id": "f8c",
+  "name": "F8C",
+  "modelPath": "/models/f8c.gltf",
+  "hardpoints": [
+    {
+      "id": "hardpoint_weapon_left_nose",
+      "label": "L Nose (S3)",
+      "type": "weapon"
+    },
+    {
+      "id": "hardpoint_weapon_left_wing_inner",
+      "label": "L Wing Inner (S3)",
+      "type": "weapon"
+    },
+    {
+      "id": "hardpoint_weapon_left_wing_outer",
+      "label": "L Wing Outer (S2)",
+      "type": "weapon"
+    },
+    {
+      "id": "hardpoint_weapon_missilerack_left",
+      "label": "Missile Rack L",
+      "type": "missile"
+    },
+    {
+      "id": "hardpoint_weapon_missilerack_right",
+      "label": "Missile Rack R",
+      "type": "missile"
+    },
+    {
+      "id": "hardpoint_weapon_right_nose",
+      "label": "R Nose (S3)",
+      "type": "weapon"
+    },
+    {
+      "id": "hardpoint_weapon_right_wing_inner",
+      "label": "R Wing Inner (S3)",
+      "type": "weapon"
+    },
+    {
+      "id": "hardpoint_weapon_right_wing_outer",
+      "label": "R Wing Outer (S2)",
+      "type": "weapon"
+    },
+    {
+      "id": "hardpoint_weapon_turret",
+      "label": "Turret (2x S2)",
+      "type": "turret"
+    }
+  ]
+}

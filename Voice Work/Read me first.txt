@@ -1,0 +1,17 @@
+To get up to speed on Voice Copier LLM & StarVox, an incoming developer or agent should read these files in the following order:
+
+1. The Big Picture
+EXECUTIVE_SUMMARY.md
+Read this for: A 2-minute overview of why this project exists, the strategic value of local-first privacy, and the high-level relationship between the Backend (Voice Copier) and Frontend (StarVox).
+2. The Technical Deep Dive
+PROJECT_DOCUMENTATION.md
+Read this for: The concrete system architecture, data flow diagrams, API endpoint definitions (/generate, /train), and how the "Emotive Tagging" engine actually works under the hood.
+3. The Requirements
+PRD.md
+Read this for: The specific feature checklist, known limitations, and the "Definition of Done" for the current release (v1.0).
+4. Navigation
+DIRECTORY_MAP.md
+Read this for: A cheat sheet on where to find specific code (e.g., "Where is the F5-TTS model wrapper?" or "Where is the UI renderer?").
+5. Quick Start
+README.md
+Read this for: Installation commands, environment setup (conda), and basic usage instructions.

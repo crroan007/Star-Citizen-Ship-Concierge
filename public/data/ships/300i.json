@@ -1,0 +1,32 @@
+{
+  "id": "300i",
+  "name": "300I",
+  "modelPath": "/models/300i.gltf",
+  "hardpoints": [
+    {
+      "id": "hardpoint_weapon_missilerack_left",
+      "label": "MISSILERACK L (S3)",
+      "type": "missile"
+    },
+    {
+      "id": "hardpoint_weapon_missilerack_right",
+      "label": "MISSILERACK R (S3)",
+      "type": "missile"
+    },
+    {
+      "id": "hardpoint_weapon_nose",
+      "label": "NOSE (S3)",
+      "type": "weapon"
+    },
+    {
+      "id": "hardpoint_weapon_wing_left",
+      "label": "WING L (S3)",
+      "type": "weapon"
+    },
+    {
+      "id": "hardpoint_weapon_wing_right",
+      "label": "WING R (S3)",
+      "type": "weapon"
+    }
+  ]
+}

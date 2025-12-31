@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-orbitron: 'Orbitron', sans-serif;
+  --color-scanline: rgba(0, 240, 255, 0.1);
+}
+
+body {
+  background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+  color: #f5f5f5;
+  /* Tesla White default */
+  font-family: var(--font-inter), sans-serif;
+  overflow: hidden;
+  /* Immersive feel */
+}
+
+/* Refined Scanline Effect (Cleaner, lower opacity) */
+.scanlines::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0) 50%,
+      rgba(0, 0, 0, 0.1) 50%);
+  background-size: 100% 3px;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.3;
+}
