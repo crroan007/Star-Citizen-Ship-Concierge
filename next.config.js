@@ -2,7 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['robertsspaceindustries.com', 'cdn.fleetyards.net'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'robertsspaceindustries.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.robertsspaceindustries.com',
+      }
+    ],
   },
 };
 

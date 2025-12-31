@@ -12,7 +12,7 @@ interface CalloutManagerProps {
 }
 
 export default function CalloutManager({ hardpoints, isMovingRef, onInteract }: CalloutManagerProps) {
-    const { isPresenting } = useXR();
+    const { isPresenting } = useXR() as any;
 
     if (isPresenting) {
         // In VR, we show 3D spatial callouts

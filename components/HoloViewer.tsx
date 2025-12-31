@@ -40,7 +40,8 @@ function Model({
     // CALCULATE BOUNDS ON LOAD
     useEffect(() => {
         if (scene && onLoaded) {
-            const box = new THREE.Box3().setFromObject(scene);
+            // Fix: Cast scene to any or specific Object3D to avoid version mismatch types
+            const box = new THREE.Box3().setFromObject(scene as any);
             const sphere = new THREE.Sphere();
             box.getBoundingSphere(sphere);
             onLoaded(sphere.radius);
@@ -116,12 +117,14 @@ const SceneContent = ({
     isMovingRef: any,
     onInteract: (hp: any) => void
 }) => {
-    const { isPresenting } = useXR();
+    // Fix: Cast useXR result to any to bypass strict type check for isPresenting
+    const { isPresenting } = useXR() as any;
     const [optimalDistance, setOptimalDistance] = useState(15); // Default fallback
 
     // VR: Position ship based on its calculated size to fill 25% of FOV
     // Desktop: Keep at 0,0,0
     const scenePosition = isPresenting ? new THREE.Vector3(0, 0, -optimalDistance) : new THREE.Vector3(0, 0, 0);
+
 
     return (
         <group position={scenePosition}>
