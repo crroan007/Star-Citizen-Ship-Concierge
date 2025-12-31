@@ -87,7 +87,7 @@ function Model({
             }
         });
 
-        console.log(`[HoloViewer] Found ${foundNodes.length} matching nodes.`);
+        // console.log(`[HoloViewer] Found ${foundNodes.length} matching nodes.`);
         setTargets(foundNodes);
 
     }, [scene, hardpoints]);
@@ -141,7 +141,7 @@ const SceneContent = ({
                             const targetAngle = 25 * (Math.PI / 180);
                             const dist = size / Math.sin(targetAngle / 2);
                             setOptimalDistance(dist);
-                            console.log(`[Auto-Scale] Ship Radius: ${size.toFixed(2)}m, Optimal Dist: ${dist.toFixed(2)}m`);
+                            // console.log(`[Auto-Scale] Ship Radius: ${size.toFixed(2)}m, Optimal Dist: ${dist.toFixed(2)}m`);
                         }}
                         onInteract={onInteract}
                     />
@@ -198,7 +198,6 @@ export default function HoloViewer({ modelPath }: HoloViewerProps) {
                 targetHardpoint={selectedHardpoint}
                 onClose={() => setSelectedHardpoint(null)}
                 onEquip={(component) => {
-                    console.log("Equipping:", component.name);
                     setSelectedHardpoint(null); // Close on equip for now
                 }}
             />
@@ -224,7 +223,6 @@ export default function HoloViewer({ modelPath }: HoloViewerProps) {
                         setTooltip={setTooltip}
                         isMovingRef={isMovingRef}
                         onInteract={(hp) => {
-                            console.log("Hardpoint Selected:", hp);
                             setSelectedHardpoint(hp);
                         }}
                     />
