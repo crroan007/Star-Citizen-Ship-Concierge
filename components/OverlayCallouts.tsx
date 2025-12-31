@@ -21,12 +21,11 @@ interface ScreenPoint {
     destX: number;
 }
 
-export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCalloutsProps) {
+export default function OverlayCallouts({ hardpoints, isMovingRef, onHardpointClick }: OverlayCalloutsProps & { onHardpointClick?: (hp: any) => void }) {
     const { camera, size } = useThree();
     const [screenPoints, setScreenPoints] = useState<ScreenPoint[]>([]);
 
     // We use a ref to manipulate the opacity DOM element directly
-    // This allows us to hide the overlay WITHOUT triggering a React re-render of the parent
     const opacityContainerRef = useRef<HTMLDivElement>(null);
 
     // Color map matching HardpointMarker
@@ -37,7 +36,6 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
         'utility': '#999999'
     };
 
-    // Optimization: Track camera to avoid redundant updates
     const lastCameraQuat = useRef(new THREE.Quaternion());
     const lastCameraPos = useRef(new THREE.Vector3());
 
@@ -46,19 +44,22 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
         if (opacityContainerRef.current) {
             const isMoving = isMovingRef.current;
             const targetOpacity = isMoving ? "0" : "1";
+
+            // Pointer events toggle: Only active when NOT moving and visible
+            const targetPointerEvents = isMoving ? "none" : "auto";
+
             if (opacityContainerRef.current.style.opacity !== targetOpacity) {
                 opacityContainerRef.current.style.opacity = targetOpacity;
+                opacityContainerRef.current.style.pointerEvents = targetPointerEvents;
             }
         }
 
-        // 2. Optimization: Skip calculation if moving (since it's invisible anyway)
         if (isMovingRef.current) return;
 
-        // 3. Optimization: check if camera moved
         if (
             camera.quaternion.equals(lastCameraQuat.current) &&
             camera.position.equals(lastCameraPos.current) &&
-            hardpoints.length > 0 // Ensure we calculate at least once if hardpoints loaded
+            hardpoints.length > 0
         ) {
             return;
         }
@@ -69,7 +70,6 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
         const height = size.height;
         const centerX = width / 2;
 
-        // Project Points
         const projected = hardpoints.map(hp => {
             const pos = new THREE.Vector3();
             hp.getWorldPosition(pos);
@@ -85,6 +85,7 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
                 z: pos.z,
                 label: hp.userData.friendlyLabel || "UNKNOWN",
                 type: hp.userData.hpType || "weapon",
+                originalObj: hp // Pass original object for callback
             };
         }).filter(p => p.z < 1);
 
@@ -93,10 +94,7 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
             return;
         }
 
-        // Perimeter extraction
-        let minX = width;
-        let maxX = 0;
-
+        let minX = width, maxX = 0;
         projected.forEach(p => {
             if (p.x < minX) minX = p.x;
             if (p.x > maxX) maxX = p.x;
@@ -117,13 +115,11 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
                 destX: side === 'left' ? leftAnchor : rightAnchor,
                 safeY: p.y
             };
-
             if (side === 'left') leftPoints.push(item);
             else rightPoints.push(item);
         });
 
         const LABEL_HEIGHT = 50;
-
         const spreadY = (points: any[]) => {
             if (points.length <= 1) return;
             points.sort((a, b) => a.y - b.y);
@@ -138,7 +134,6 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
 
         spreadY(leftPoints);
         spreadY(rightPoints);
-
         setScreenPoints([...leftPoints, ...rightPoints]);
     });
 
@@ -150,7 +145,8 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
                     width: '100%',
                     height: '100%',
                     transition: 'opacity 0.2s ease-out',
-                    opacity: 1 // Default
+                    opacity: 1,
+                    pointerEvents: 'auto' // Managed by ref in useFrame
                 }}
             >
                 <svg
@@ -162,8 +158,17 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
                         const color = TYPE_COLORS[pt.type] || '#ffffff';
 
                         return (
-                            <g key={pt.id}>
-                                <circle cx={pt.x} cy={pt.y} r="3" fill={color} />
+                            <g
+                                key={pt.id}
+                                className="cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => onHardpointClick && onHardpointClick({
+                                    id: pt.id,
+                                    label: pt.label,
+                                    type: pt.type
+                                })}
+                            >
+                                <circle cx={pt.x} cy={pt.y} r="5" fill="transparent" stroke={color} strokeWidth="2" />
+                                <circle cx={pt.x} cy={pt.y} r="2" fill={color} />
 
                                 <line
                                     x1={pt.x} y1={pt.y}
@@ -171,6 +176,7 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
                                     stroke={color}
                                     strokeWidth="2"
                                     opacity="0.6"
+                                    pointerEvents="none"
                                 />
 
                                 <foreignObject
@@ -183,7 +189,7 @@ export default function OverlayCallouts({ hardpoints, isMovingRef }: OverlayCall
                                     <div className={`
                                         bg-black/80 border border-white/20 backdrop-blur-sm px-3 py-1
                                         text-xs font-mono font-bold text-white whitespace-nowrap
-                                        flex items-center gap-2 shadow-lg h-full pointer-events-none select-none
+                                        flex items-center gap-2 shadow-lg h-full pointer-events-auto select-none
                                         ${pt.side === 'right' ? 'flex-row rounded-r-md border-l-0' : 'flex-row-reverse text-right rounded-l-md border-r-0'}
                                     `}
                                         style={{

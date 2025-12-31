@@ -16,12 +16,36 @@ interface HoloViewerProps {
 // XR API v6 Store
 const store = createXRStore();
 
-function Model({ modelPath, setTooltip, isMovingRef }: { modelPath: string, setTooltip: (data: any) => void, isMovingRef: React.MutableRefObject<boolean> }) {
+import ComponentBrowser from "./ComponentBrowser";
+
+function Model({
+    modelPath,
+    setTooltip,
+    isMovingRef,
+    onLoaded,
+    onInteract
+}: {
+    modelPath: string,
+    setTooltip: (data: any) => void,
+    isMovingRef: React.MutableRefObject<boolean>,
+    onLoaded?: (radius: number) => void,
+    onInteract?: (hp: any) => void
+}) {
     const gltf = useGLTF(modelPath, true) as GLTF;
     const scene = useMemo(() => gltf.scene.clone(), [gltf.scene]);
     const group = useRef<THREE.Group>(null);
     const [targets, setTargets] = useState<THREE.Object3D[]>([]);
     const [hardpoints, setHardpoints] = useState<any[]>([]);
+
+    // CALCULATE BOUNDS ON LOAD
+    useEffect(() => {
+        if (scene && onLoaded) {
+            const box = new THREE.Box3().setFromObject(scene);
+            const sphere = new THREE.Sphere();
+            box.getBoundingSphere(sphere);
+            onLoaded(sphere.radius);
+        }
+    }, [scene, onLoaded]);
 
     // FETCH CONFIG
     useEffect(() => {
@@ -76,23 +100,48 @@ function Model({ modelPath, setTooltip, isMovingRef }: { modelPath: string, setT
     return (
         <group ref={group}>
             <primitive object={scene} />
-            <CalloutManager hardpoints={targets} isMovingRef={isMovingRef} />
+            <CalloutManager hardpoints={targets} isMovingRef={isMovingRef} onInteract={onInteract} />
         </group>
     );
 }
 
-const SceneContent = ({ modelPath, setTooltip, isMovingRef }: { modelPath: string, setTooltip: any, isMovingRef: any }) => {
+const SceneContent = ({
+    modelPath,
+    setTooltip,
+    isMovingRef,
+    onInteract
+}: {
+    modelPath: string,
+    setTooltip: any,
+    isMovingRef: any,
+    onInteract: (hp: any) => void
+}) => {
     const { isPresenting } = useXR();
+    const [optimalDistance, setOptimalDistance] = useState(15); // Default fallback
 
-    // VR: Move ship 15 meters away so user isn't inside it. 
-    // Desktop: Keep at 0,0,0 for standard OrbitControls interaction.
-    const scenePosition = isPresenting ? new THREE.Vector3(0, 1, -15) : new THREE.Vector3(0, 0, 0);
+    // VR: Position ship based on its calculated size to fill 25% of FOV
+    // Desktop: Keep at 0,0,0
+    const scenePosition = isPresenting ? new THREE.Vector3(0, 0, -optimalDistance) : new THREE.Vector3(0, 0, 0);
 
     return (
         <group position={scenePosition}>
             <Stage environment="city" intensity={0.6} shadows={false}>
                 <Suspense fallback={null}>
-                    <Model modelPath={modelPath} setTooltip={setTooltip} isMovingRef={isMovingRef} />
+                    <Model
+                        modelPath={modelPath}
+                        setTooltip={setTooltip}
+                        isMovingRef={isMovingRef}
+                        onLoaded={(size) => {
+                            // Calculate distance for 25% FOV coverage
+                            // Formula: Distance = Radius / sin(FOV_Angle / 2)
+                            // Target 25 degrees (approx 25% of ~100 deg FOV)
+                            const targetAngle = 25 * (Math.PI / 180);
+                            const dist = size / Math.sin(targetAngle / 2);
+                            setOptimalDistance(dist);
+                            console.log(`[Auto-Scale] Ship Radius: ${size.toFixed(2)}m, Optimal Dist: ${dist.toFixed(2)}m`);
+                        }}
+                        onInteract={onInteract}
+                    />
                 </Suspense>
             </Stage>
             <ContactShadows position={[0, -0.5, 0]} opacity={0.4} scale={10} blur={2.5} far={4} color="#0b1622" />
@@ -119,6 +168,9 @@ export default function HoloViewer({ modelPath }: HoloViewerProps) {
     // Performance: Use Ref instead of State to prevent Canvas re-renders during interaction
     const isMovingRef = useRef(false);
 
+    // SELECTION STATE
+    const [selectedHardpoint, setSelectedHardpoint] = useState<any>(null);
+
     const handleMouseMove = (e: React.MouseEvent) => {
         if (tooltipRef.current) {
             tooltipRef.current.style.transform = `translate(${e.clientX + 15}px, ${e.clientY + 15}px)`;
@@ -136,6 +188,17 @@ export default function HoloViewer({ modelPath }: HoloViewerProps) {
                     <span>SYSTEM_READY // TARGETING_ASSIST_ACTIVE</span>
                 </div>
             </div>
+
+            {/* COMPONENT BROWSER OVERLAY */}
+            <ComponentBrowser
+                isOpen={!!selectedHardpoint}
+                targetHardpoint={selectedHardpoint}
+                onClose={() => setSelectedHardpoint(null)}
+                onEquip={(component) => {
+                    console.log("Equipping:", component.name);
+                    setSelectedHardpoint(null); // Close on equip for now
+                }}
+            />
 
             {/* v6 XR Button (Custom UI triggering store) */}
             <div className="absolute bottom-4 right-4 z-50">
@@ -157,6 +220,10 @@ export default function HoloViewer({ modelPath }: HoloViewerProps) {
                         modelPath={modelPath}
                         setTooltip={setTooltip}
                         isMovingRef={isMovingRef}
+                        onInteract={(hp) => {
+                            console.log("Hardpoint Selected:", hp);
+                            setSelectedHardpoint(hp);
+                        }}
                     />
                 </XR>
             </Canvas>

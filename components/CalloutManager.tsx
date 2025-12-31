@@ -8,9 +8,10 @@ import SpatialCallouts from "./SpatialCallouts";
 interface CalloutManagerProps {
     hardpoints: THREE.Object3D[];
     isMovingRef: React.MutableRefObject<boolean>;
+    onInteract?: (hp: any) => void;
 }
 
-export default function CalloutManager({ hardpoints, isMovingRef }: CalloutManagerProps) {
+export default function CalloutManager({ hardpoints, isMovingRef, onInteract }: CalloutManagerProps) {
     const { isPresenting } = useXR();
 
     if (isPresenting) {
@@ -18,7 +19,10 @@ export default function CalloutManager({ hardpoints, isMovingRef }: CalloutManag
         return <SpatialCallouts hardpoints={hardpoints} />;
     } else {
         // On Desktop, we show the intelligent 2D overlay
-        // We pass the ref so it can poll the moving state frame-by-frame
-        return <OverlayCallouts hardpoints={hardpoints} isMovingRef={isMovingRef} />;
+        return <OverlayCallouts
+            hardpoints={hardpoints}
+            isMovingRef={isMovingRef}
+            onHardpointClick={onInteract}
+        />;
     }
 }
